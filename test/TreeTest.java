@@ -1,5 +1,7 @@
 import org.junit.Test;
 
+import java.util.ArrayList;
+
 import static org.junit.Assert.*;
 
 /**
@@ -10,8 +12,11 @@ import static org.junit.Assert.*;
 public class TreeTest {
 
     @Test(timeout = 500)
-    public void dummyTest() {
-        assertTrue(true);
+    public void emptyTest() {
+        Tree tree1 = new Tree(12, null);
+        Tree tree2 = new Tree(null, null);
+        assertTrue(tree2.is_empty());
+        assertFalse(tree1.is_empty());
     }
 
 }
