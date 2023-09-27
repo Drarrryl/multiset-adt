@@ -6,7 +6,7 @@ public class Tree {
 
     public Tree(Object newRoot, ArrayList<Tree> newSubtrees) {
         setRoot(newRoot);
-        if (this.subtrees == null) {
+        if (newSubtrees == null) {
             setSubtrees(new ArrayList<>());
         } else {
             setSubtrees(newSubtrees);
@@ -53,6 +53,26 @@ public class Tree {
             return num;
         }
     }
+    private String strIndented(int depth) {
+        if (this.is_empty()) {
+            return "";
+        } else {
+            String indent = "";
+            for (int i = 0; i < depth; i++) {
+                indent = indent.concat("   ");
+            }
+            String str = (indent + this.root.toString() + "\n");
+            for (Tree subtree : this.subtrees) {
+                str = str.concat(subtree.strIndented(depth + 1));
+            }
+            return str;
+        }
+    }
+    @Override
+    public String toString() {
+        return strIndented(0);
+    }
+
     private int[] averageHelper() {
         if (this.is_empty()) {
             return new int[2];
@@ -92,7 +112,16 @@ public class Tree {
             if (this.len() != other.len()) {
                 return false;
             }
-            return this.subtrees == other.getSubtrees();
+            if (this.subtrees.isEmpty()) {
+                return this.root == other.root;
+            } else {
+                for (int i = 0; i < this.subtrees.size(); i++) {
+                    if (!(this.subtrees.get(i).equals(other.subtrees.get(i)))) {
+                        return false;
+                    }
+                }
+                return true;
+            }
         }
     }
     public boolean contains(Object item) {
@@ -109,13 +138,13 @@ public class Tree {
             return false;
         }
     }
-    public List<Object> leaves() {
+    public ArrayList<Object> leaves() {
         if (this.is_empty()) {
             return new ArrayList<>();
         } else if (Objects.equals(this.subtrees, new ArrayList<Tree>())) {
             return new ArrayList<>(Collections.singletonList(this.root));
         } else {
-            List<Object> leaves = new ArrayList<>();
+            ArrayList<Object> leaves = new ArrayList<>();
             for (Tree subtree : this.getSubtrees()) {
                 leaves.addAll(leaves.size(), subtree.leaves());
             }
@@ -199,23 +228,23 @@ public class Tree {
 
 class MultiSet {
 
-    public static boolean add(Object item) {
+    public boolean add(Object item) {
         return false;
     }
 
-    public static void remove(Object item) {    }
+    public void remove(Object item) {    }
 
-    public static boolean contains(Object item) {
+    public boolean contains(Object item) {
         return false;
     }
 
-    public static boolean is_empty() {
+    public boolean is_empty() {
         return false;
     }
 
-    public static int count(Object item) { return 0; }
+    public int count(Object item) { return 0; }
 
-    public static int size(Object item) { return 0; }
+    public int size(Object item) { return 0; }
 
 }
 
@@ -231,5 +260,167 @@ class TreeMultiSet extends MultiSet {
     }
     public void setTree(Tree newTree) {
         this.tree = newTree;
+    }
+    @Override
+    public boolean add(Object item) {
+        this.tree.insert(item);
+        return true;
+    }
+    @Override
+    public void remove(Object item) {
+        this.tree.delete_item(item);
+    }
+    @Override
+    public boolean contains(Object item) {
+        return this.tree.contains(item);
+    }
+    @Override
+    public boolean is_empty() {
+        return this.tree.is_empty();
+    }
+    @Override
+    public int count(Object item) {
+        return this.tree.count(item);
+    }
+    @Override
+    public int size(Object item) {
+        return this.tree.len();
+    }
+}
+
+class ArrayListMultiSet extends MultiSet {
+    private ArrayList<Object> list;
+    public ArrayListMultiSet() {
+        super();
+        setArrayList(new ArrayList<>());
+    }
+    public ArrayList<Object> getArrayList() {
+        return list;
+    }
+    public void setArrayList(ArrayList<Object> newList) {
+        this.list = newList;
+    }
+    @Override
+    public boolean add(Object item) {
+        this.list.add(item);
+        return true;
+    }
+    @Override
+    public void remove(Object item) {
+        this.list.remove(item);
+    }
+    @Override
+    public boolean contains(Object item) {
+        return this.list.contains(item);
+    }
+    @Override
+    public boolean is_empty() {
+        return this.list.isEmpty();
+    }
+    @Override
+    public int count(Object item) {
+        int count = 0;
+        while (this.list.contains(item)) {
+            count += 1;
+            list.remove(item);
+        }
+        return count;
+    }
+    @Override
+    public int size(Object item) {
+        return this.list.size();
+    }
+}
+
+class Node {
+    public Object item;
+    private Node next;
+    public Node(Object item) {
+        this.item = item;
+        setNext(null);
+    }
+    public Node getNext() {
+        return this.next;
+    }
+    public void setNext(Node next) {
+        this.next = next;
+    }
+}
+
+class LinkedListMultiSet extends MultiSet {
+    private Node front;
+    private int size;
+    public LinkedListMultiSet() {
+        this.setFront(null);
+        this.setSize(0);
+    }
+    public void setFront(Node front) {
+        this.front = front;
+    }
+    public Node getFront() {
+        return front;
+    }
+    public void setSize(int size) {
+        this.size = size;
+    }
+    public int getSize() {
+        return size;
+    }
+    @Override
+    public boolean add(Object item) {
+        Node newNode = new Node(item);
+        newNode.setNext(this.front);
+        this.setFront(newNode);
+        this.size += 1;
+        return true;
+    }
+    @Override
+    public void remove(Object item) {
+        Node curr = this.front;
+        Node prev = null;
+        while (curr != null) {
+            if (curr.item == item) {
+                this.size -= 1;
+                if (prev != null) {
+                    prev.setNext(curr.getNext());
+                } else {
+                    this.front = curr.getNext();
+                }
+                return;
+            }
+            prev = curr;
+            curr = curr.getNext();
+        }
+    }
+    @Override
+    public boolean contains(Object item) {
+        Node curr = this.front;
+        while (curr != null) {
+            if (curr.item == item) {
+                return true;
+            }
+            curr = curr.getNext();
+        }
+        return false;
+    }
+    @Override
+    public boolean is_empty() {
+        return this.front == null;
+    }
+    @Override
+    public int count(Object item) {
+        int count = 0;
+        Node curr = this.front;
+        while (curr != null) {
+            if (curr.item == item) {
+                count += 1;
+            }
+            curr = curr.getNext();
+        }
+        return count;
+    }
+    @Override
+    public int size(Object item) {
+        return this.getSize();
     }
 }
